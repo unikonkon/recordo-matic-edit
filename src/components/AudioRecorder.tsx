@@ -3,10 +3,11 @@ import { Mic, Square, Pencil, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { Link } from "react-router-dom";
 
 export const AudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
-  const [recordings, setRecordings] = useState<Array<{ url: string; name: string }>>([]);
+  const [recordings, setRecordings] = useState<Array<{ url: string; name: string; id: string }>>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -28,7 +29,8 @@ export const AudioRecorder = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const url = URL.createObjectURL(blob);
         const timestamp = new Date().toLocaleTimeString();
-        setRecordings([...recordings, { url, name: `Recording ${timestamp}` }]);
+        const id = Date.now().toString(); // Generate a unique ID
+        setRecordings([...recordings, { url, name: `Recording ${timestamp}`, id }]);
       };
 
       mediaRecorderRef.current.start();
@@ -80,7 +82,8 @@ export const AudioRecorder = () => {
     if (file) {
       if (file.type.startsWith('audio/')) {
         const url = URL.createObjectURL(file);
-        setRecordings([...recordings, { url, name: file.name }]);
+        const id = Date.now().toString(); // Generate a unique ID
+        setRecordings([...recordings, { url, name: file.name, id }]);
         toast({
           title: "File uploaded",
           description: "Your audio file has been added successfully",
@@ -142,7 +145,12 @@ export const AudioRecorder = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{recording.name}</span>
+                  <Link 
+                    to={`/recording/${recording.id}`}
+                    className="font-medium hover:text-primary transition-colors"
+                  >
+                    {recording.name}
+                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
