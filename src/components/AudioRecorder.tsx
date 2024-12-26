@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Mic, Square, Pencil } from "lucide-react";
+import { Mic, Square, Pencil, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -12,6 +12,7 @@ export const AudioRecorder = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startRecording = async () => {
     try {
@@ -74,17 +75,54 @@ export const AudioRecorder = () => {
     });
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('audio/')) {
+        const url = URL.createObjectURL(file);
+        setRecordings([...recordings, { url, name: file.name }]);
+        toast({
+          title: "File uploaded",
+          description: "Your audio file has been added successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Please upload an audio file",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="recording-gradient rounded-xl p-8 mb-8 text-white text-center">
         <h2 className="text-2xl font-bold mb-4">Easy Record</h2>
         <p className="mb-8">เริ่มต้นการบันทึกเสียงได้ง่าย ๆ</p>
-        <button
-          onClick={isRecording ? stopRecording : startRecording}
-          className={`recording-button ${isRecording ? 'recording' : ''} mx-auto`}
-        >
-          {isRecording ? <Square className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
-        </button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`recording-button ${isRecording ? 'recording' : ''}`}
+          >
+            {isRecording ? <Square className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="audio/*"
+            className="hidden"
+          />
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            variant="secondary"
+            className="flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            Upload Audio
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
