@@ -2,8 +2,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronRight, User, CreditCard, Headphones, Mail, Info, FileText, LogOut } from "lucide-react";
+import { useFirebase } from "@/contexts/FirebaseContext";
 
 const Settings = () => {
+  const { user } = useFirebase();
   const userCredit = "30.00 IC";
   
   return (
@@ -12,12 +14,15 @@ const Settings = () => {
         <Card className="p-4 mb-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>ST</AvatarFallback>
+              <AvatarImage src={user?.photoURL || "https://github.com/shadcn.png"} />
+              <AvatarFallback>{user?.displayName?.[0] || "U"}</AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-xl font-semibold">สวัสดี, Suthep</h2>
+              <h2 className="text-xl font-semibold">สวัสดี, {user?.displayName || "Guest"}</h2>
               <p className="text-sm text-gray-600">เครดิตที่ใช้งานได้ {userCredit}</p>
+              {user?.email && (
+                <p className="text-sm text-gray-500">{user.email}</p>
+              )}
             </div>
           </div>
         </Card>
