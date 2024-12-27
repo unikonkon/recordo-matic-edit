@@ -10,7 +10,7 @@ const getFirebaseConfig = () => {
     const defaultConfig = {
       apiKey: "AIzaSyDoIJe3C2Csgzfe_dn9GAsvkiMIc5edAuU",
       authDomain: "iapp-record.firebaseapp.com",
-      databaseURL: "https://iapp-record-default-rtdb.asia-southeast1.firebasedatabase.app", 
+      databaseURL: "https://iapp-record-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "iapp-record",
       storageBucket: "iapp-record.firebasestorage.app",
       messagingSenderId: "926056113596",
@@ -25,14 +25,18 @@ const getFirebaseConfig = () => {
 
 // Initialize Firebase
 let app;
+let auth;
+let db;
+let rtdb;
+
 try {
   const firebaseConfig = getFirebaseConfig();
   app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  rtdb = getDatabase(app);
 } catch (error) {
   console.error('Error initializing Firebase:', error);
 }
 
-export const auth = app ? getAuth(app) : null;
-export const db = app ? getFirestore(app) : null;
-export const rtdb = app ? getDatabase(app) : null;
-export { app };
+export { app, auth, db, rtdb };

@@ -12,11 +12,22 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) {
+      toast({
+        title: "Error",
+        description: "Firebase Authentication is not properly configured",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
       if (isSignUp) {
         // Create user with email and password
@@ -62,6 +73,11 @@ const Login = () => {
         case 'auth/weak-password':
           errorMessage = "Password should be at least 6 characters";
           break;
+        case 'auth/network-request-failed':
+          errorMessage = "Network error. Please check your internet connection";
+          break;
+        default:
+          console.error("Auth error:", error);
       }
 
       toast({
@@ -69,7 +85,8 @@ const Login = () => {
         description: errorMessage,
         variant: "destructive",
       });
-      console.error("Auth error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,6 +108,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             {isSignUp && (
@@ -100,6 +118,7 @@ const Login = () => {
                   placeholder="Display Name (optional)"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             )}
@@ -110,13 +129,14 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
 
           <div>
-            <Button type="submit" className="w-full">
-              {isSignUp ? "Sign Up" : "Sign In"}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
             </Button>
           </div>
         </form>
@@ -126,6 +146,7 @@ const Login = () => {
             variant="link"
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
+            disabled={isLoading}
           >
             {isSignUp
               ? "Already have an account? Sign in"
