@@ -1,14 +1,14 @@
-import * as functions from 'firebase-functions';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
 // Example function to get all users (admin only)
-export const getAllUsers = functions.https.onCall(async (data, context: functions.https.CallableContext) => {
+export const getAllUsers = onCall(async (request) => {
   // Check if user is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'User must be authenticated'
     );
@@ -22,7 +22,7 @@ export const getAllUsers = functions.https.onCall(async (data, context: function
       displayName: user.displayName
     }))};
   } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
+    throw new HttpsError('internal', error.message);
   }
 });
 
@@ -32,22 +32,22 @@ interface SetUserRoleData {
 }
 
 // Example function to update user role (admin only)
-export const setUserRole = functions.https.onCall(async (data: SetUserRoleData, context: functions.https.CallableContext) => {
+export const setUserRole = onCall<SetUserRoleData>(async (request) => {
   // Check if user is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'User must be authenticated'
     );
   }
 
-  const { uid, role } = data;
+  const { uid, role } = request.data;
 
   try {
     await admin.auth().setCustomUserClaims(uid, { role });
     return { success: true };
   } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
+    throw new HttpsError('internal', error.message);
   }
 });
 
@@ -58,16 +58,16 @@ interface CreateUserData {
 }
 
 // Example function to create a new user (admin only)
-export const createUser = functions.https.onCall(async (data: CreateUserData, context: functions.https.CallableContext) => {
+export const createUser = onCall<CreateUserData>(async (request) => {
   // Check if user is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+  if (!request.auth) {
+    throw new HttpsError(
       'unauthenticated',
       'User must be authenticated'
     );
   }
 
-  const { email, password, displayName } = data;
+  const { email, password, displayName } = request.data;
 
   try {
     const userRecord = await admin.auth().createUser({
@@ -77,6 +77,6 @@ export const createUser = functions.https.onCall(async (data: CreateUserData, co
     });
     return { uid: userRecord.uid };
   } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
+    throw new HttpsError('internal', error.message);
   }
 });
