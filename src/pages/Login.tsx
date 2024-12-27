@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { auth } from "@/lib/firebase";
+import { auth, rtdb } from "@/lib/firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { ref, set } from "firebase/database";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -17,7 +19,19 @@ const Login = () => {
     e.preventDefault();
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        // Create user with email and password
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Store additional user data in Realtime Database
+        if (rtdb) {
+          await set(ref(rtdb, `users/${user.uid}`), {
+            email: user.email,
+            displayName: displayName || email.split('@')[0],
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+          });
+        }
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
@@ -79,6 +93,16 @@ const Login = () => {
                 required
               />
             </div>
+            {isSignUp && (
+              <div>
+                <Input
+                  type="text"
+                  placeholder="Display Name (optional)"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                />
+              </div>
+            )}
             <div>
               <Input
                 type="password"
