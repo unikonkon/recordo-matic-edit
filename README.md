@@ -67,3 +67,19 @@ Simply open [Lovable](https://lovable.dev/projects/ba9b0c18-5f31-44d5-88f2-3c130
 ## I want to use a custom domain - is that possible?
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+
+
+<!-- const firebaseConfig = {
+  apiKey: "AIzaSyDoIJe3C2Csgzfe_dn9GAsvkiMIc5edAuU",
+  authDomain: "iapp-record.firebaseapp.com",
+  databaseURL: "https://iapp-record-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "iapp-record",
+  storageBucket: "iapp-record.firebasestorage.app",
+  messagingSenderId: "926056113596",
+  appId: "1:926056113596:web:9943ef50cbb9b7d5b337b9",
+  measurementId: "G-P1ZK4MRF7B"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig); -->
