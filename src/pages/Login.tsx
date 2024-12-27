@@ -22,12 +22,40 @@ const Login = () => {
         await signInWithEmailAndPassword(auth, email, password);
       }
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
+      let errorMessage = "An error occurred during authentication";
+      
+      // Handle specific Firebase Auth errors
+      switch (error.code) {
+        case 'auth/configuration-not-found':
+          errorMessage = "Firebase Authentication is not properly configured. Please enable Authentication in Firebase Console.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "Invalid email address";
+          break;
+        case 'auth/user-disabled':
+          errorMessage = "This account has been disabled";
+          break;
+        case 'auth/user-not-found':
+          errorMessage = "No account found with this email";
+          break;
+        case 'auth/wrong-password':
+          errorMessage = "Incorrect password";
+          break;
+        case 'auth/email-already-in-use':
+          errorMessage = "An account already exists with this email";
+          break;
+        case 'auth/weak-password':
+          errorMessage = "Password should be at least 6 characters";
+          break;
+      }
+
       toast({
         title: "Authentication Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
+      console.error("Auth error:", error);
     }
   };
 
