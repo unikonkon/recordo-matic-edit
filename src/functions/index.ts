@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 admin.initializeApp();
 
 // Example function to get all users (admin only)
-export const getAllUsers = functions.https.onCall(async (data, context) => {
+export const getAllUsers = functions.https.onCall(async (data, context: functions.https.CallableContext) => {
   // Check if user is authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -26,8 +26,13 @@ export const getAllUsers = functions.https.onCall(async (data, context) => {
   }
 });
 
+interface SetUserRoleData {
+  uid: string;
+  role: string;
+}
+
 // Example function to update user role (admin only)
-export const setUserRole = functions.https.onCall(async (data, context) => {
+export const setUserRole = functions.https.onCall(async (data: SetUserRoleData, context: functions.https.CallableContext) => {
   // Check if user is authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -46,8 +51,14 @@ export const setUserRole = functions.https.onCall(async (data, context) => {
   }
 });
 
+interface CreateUserData {
+  email: string;
+  password: string;
+  displayName: string;
+}
+
 // Example function to create a new user (admin only)
-export const createUser = functions.https.onCall(async (data, context) => {
+export const createUser = functions.https.onCall(async (data: CreateUserData, context: functions.https.CallableContext) => {
   // Check if user is authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError(
