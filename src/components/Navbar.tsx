@@ -4,9 +4,11 @@ import { Link } from "react-router-dom";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/components/ui/use-toast";
+import { useFirebase } from "@/contexts/FirebaseContext";
 
 export const Navbar = () => {
   const { toast } = useToast();
+  const { user } = useFirebase();
 
   const handleSignOut = async () => {
     try {
@@ -32,25 +34,23 @@ export const Navbar = () => {
               <h1 className="text-xl font-bold text-primary">Easy Record</h1>
             </Link>
           </div>
-          
+
           <div className="flex items-center space-x-6">
             <Button variant="ghost" asChild>
               <Link to="/">HOME</Link>
             </Button>
-            <Button variant="ghost">CART</Button>
-            <Button variant="ghost">PRE ORDER</Button>
-            <Button variant="ghost">ABOUT</Button>
-            <Button variant="ghost">CONTACT</Button>
             <Button variant="ghost" onClick={handleSignOut}>
               SIGN OUT
             </Button>
-            
-            <Link to="/settings">
-              <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
+            <div>{user.email}</div>
+
+            <Link to="/settings" className="cursor-pointer">
+              <Avatar >
+                <AvatarImage src="https://github.com/shadcn.png"  />
                 <AvatarFallback>ST</AvatarFallback>
               </Avatar>
             </Link>
+           
           </div>
         </div>
       </div>

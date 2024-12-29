@@ -1,7 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getDatabase } from 'firebase/database';
+import { FirebaseApp, initializeApp } from 'firebase/app';
+import { Auth, getAuth } from 'firebase/auth';
+import { Firestore, getFirestore } from 'firebase/firestore';
+import { Database, getDatabase } from 'firebase/database';
 
 // Firebase configuration
 const getFirebaseConfig = () => {
@@ -24,10 +24,10 @@ const getFirebaseConfig = () => {
 };
 
 // Initialize Firebase
-let app;
-let auth;
-let db;
-let rtdb;
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
+let rtdb: Database;
 
 try {
   const firebaseConfig = getFirebaseConfig();

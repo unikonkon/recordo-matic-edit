@@ -3,10 +3,34 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronRight, User, CreditCard, Headphones, Mail, Info, FileText, LogOut } from "lucide-react";
 import { useFirebase } from "@/contexts/FirebaseContext";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+import { useToast } from "@/components/ui/use-toast";
+
 
 const Settings = () => {
+  const { toast } = useToast();
   const { user } = useFirebase();
+
+  console.log("user",user)
+  console.log("auth",auth)
+
   const userCredit = "30.00 IC";
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Signed out successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,8 +78,8 @@ const Settings = () => {
             variant="ghost"
             className="w-full justify-between h-14 px-4 text-red-500"
           >
-            <div className="flex items-center gap-3">
-              <LogOut className="h-5 w-5" />
+            <div className="flex items-center gap-3" onClick={handleSignOut}>
+              <LogOut className="h-5 w-5"/>
               <span>ออกจากระบบ</span>
             </div>
             <ChevronRight className="h-5 w-5" />
