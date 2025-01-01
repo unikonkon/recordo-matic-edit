@@ -1,9 +1,14 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Mic, Square, Pencil, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
+import { addDoc, collection, getDocs } from "firebase/firestore"; // Import Firestore
+import { db } from "@/lib/firebase"; // Your Firestore instance
+import { ref, set } from "firebase/database";
+import { rtdb } from "@/lib/firebase"; // Assuming your firebase.ts exports rtdb
+
 
 export const AudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -15,26 +20,68 @@ export const AudioRecorder = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+
   const startRecording = async () => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Your device does not support audio recording.");
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        chunksRef.current.push(e.data);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const url = URL.createObjectURL(blob);
         const timestamp = new Date().toLocaleTimeString();
-        const id = Date.now().toString(); // Generate a unique ID
-        setRecordings([...recordings, { url, name: `Recording ${timestamp}`, id }]);
+        const id = Date.now().toString(); // Unique ID
+
+        const newRecording = { url, name: `Recording ${timestamp}`, id };
+        setRecordings((prev) => [...prev, newRecording]);
+
+        // Save to Firestore
+        try {
+          await addDoc(collection(db, "recordings"), {
+            name: `Recording ${timestamp}`,
+            url, // Blob URL (use Firebase Storage for production)
+            timestamp: new Date().toISOString(),
+          });
+
+          // Save to Realtime Database
+          const recordingsRef = ref(rtdb, `recordings/${id}`);
+          await set(recordingsRef, {
+            name: `Recording ${timestamp}`,
+            url,
+            timestamp: new Date().toISOString(),
+          });
+
+          toast({
+            title: "Recording uploaded",
+            description: "Your recording has been saved to the database",
+          });
+        } catch (err) {
+          console.error("Error uploading to Firestore:", err);
+          toast({
+            title: "Error",
+            description: "Failed to upload recording to the database",
+            variant: "destructive",
+          });
+        }
+
+        stream.getTracks().forEach((track) => track.stop());
       };
 
-      mediaRecorderRef.current.start();
+      mediaRecorder.start();
       setIsRecording(true);
+
       toast({
         title: "Recording started",
         description: "Your audio is now being recorded",
@@ -43,7 +90,7 @@ export const AudioRecorder = () => {
       console.error("Error accessing microphone:", err);
       toast({
         title: "Error",
-        description: "Could not access microphone",
+        description: "Could not access the microphone.",
         variant: "destructive",
       });
     }
@@ -60,6 +107,31 @@ export const AudioRecorder = () => {
       });
     }
   };
+
+  // Fetch recordings from Firestore
+  const fetchRecordings = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "recordings"));
+      const fetchedRecordings = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Array<{ id: string; url: string; name: string }>;
+
+      setRecordings(fetchedRecordings);
+    } catch (err) {
+      console.error("Error fetching recordings:", err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch recordings from the database.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Fetch recordings on component load
+  useEffect(() => {
+    fetchRecordings();
+  }, []);
 
   const startEditing = (index: number, name: string) => {
     setEditingIndex(index);
@@ -145,7 +217,7 @@ export const AudioRecorder = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Link 
+                  <Link
                     to={`/recording/${recording.id}`}
                     className="font-medium hover:text-primary transition-colors"
                   >
@@ -168,3 +240,41 @@ export const AudioRecorder = () => {
     </div>
   );
 };
+
+
+
+
+
+// const startRecording = async () => {
+//   try {
+//     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+//     mediaRecorderRef.current = new MediaRecorder(stream);
+//     chunksRef.current = [];
+
+//     mediaRecorderRef.current.ondataavailable = (e) => {
+//       chunksRef.current.push(e.data);
+//     };
+
+//     mediaRecorderRef.current.onstop = () => {
+//       const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+//       const url = URL.createObjectURL(blob);
+//       const timestamp = new Date().toLocaleTimeString();
+//       const id = Date.now().toString(); // Generate a unique ID
+//       setRecordings([...recordings, { url, name: `Recording ${timestamp}`, id }]);
+//     };
+
+//     mediaRecorderRef.current.start();
+//     setIsRecording(true);
+//     toast({
+//       title: "Recording started",
+//       description: "Your audio is now being recorded",
+//     });
+//   } catch (err) {
+//     console.error("Error accessing microphone:", err);
+//     toast({
+//       title: "Error",
+//       description: "Could not access microphone",
+//       variant: "destructive",
+//     });
+//   }
+// };
