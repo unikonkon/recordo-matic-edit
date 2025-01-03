@@ -278,3 +278,103 @@ export const AudioRecorder = () => {
 //     });
 //   }
 // };
+
+
+
+// แบบ upload เข้า DB
+// const startRecording = async () => {
+//   try {
+//     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+//       throw new Error("Your device does not support audio recording.");
+//     }
+
+//     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+//     const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+//     mediaRecorderRef.current = mediaRecorder;
+//     chunksRef.current = [];
+
+//     mediaRecorder.ondataavailable = (e) => {
+//       if (e.data.size > 0) {
+//         chunksRef.current.push(e.data);
+//       }
+//     };
+
+//     mediaRecorder.onstop = async () => {
+//       const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+//       const timestamp = new Date().toLocaleTimeString();
+//       const id = Date.now().toString(); // Unique ID
+//       const newRecordingName = `Recording_${id}`;
+
+//       try {
+//         // Upload the blob to Firebase Storage
+//         const storage = getStorage();
+//         // สร้าง reference ไปยังตำแหน่งใน Storage
+//         const audioRef = storageRef(storage, `audio/${newRecordingName}.webm`);
+//         try {
+//           await uploadBytes(audioRef, blob);
+//         } catch (err) {
+//           console.error("Upload failed:", err);
+//           toast({
+//             title: "Error",
+//             description: "Failed to upload audio file. Please check your Firebase Storage settings.",
+//             variant: "destructive",
+//           });
+//         }
+
+//         // Get the download URL for the uploaded file
+//         const downloadURL = await getDownloadURL(audioRef);
+
+//         // Save metadata and URL to Firestore
+//         await addDoc(collection(db, "recordings"), {
+//           name: `Recording ${timestamp}`,
+//           url: downloadURL,
+//           timestamp: new Date().toISOString(),
+//         });
+
+//         // Save metadata and URL to Realtime Database
+//         const recordingsRef = ref(rtdb, `recordings/${id}`);
+//         await set(recordingsRef, {
+//           name: `Recording ${timestamp}`,
+//           url: downloadURL,
+//           timestamp: new Date().toISOString(),
+//         });
+
+//         // Add to local state for UI
+//         setRecordings((prev) => [
+//           ...prev,
+//           { url: downloadURL, name: `Recording ${timestamp}`, id },
+//         ]);
+
+//         toast({
+//           title: "Recording uploaded",
+//           description: "Your recording has been saved to the database.",
+//         });
+//       } catch (err) {
+//         console.error("Error uploading audio:", err);
+//         toast({
+//           title: "Error",
+//           description: "Failed to upload recording to the database.",
+//           variant: "destructive",
+//         });
+//       }
+
+//       // Release the microphone resources
+//       stream.getTracks().forEach((track) => track.stop());
+//     };
+
+//     mediaRecorder.start();
+//     setIsRecording(true);
+
+//     toast({
+//       title: "Recording started",
+//       description: "Your audio is now being recorded.",
+//     });
+//   } catch (err) {
+//     console.error("Error accessing microphone:", err);
+//     toast({
+//       title: "Error",
+//       description: "Could not access the microphone.",
+//       variant: "destructive",
+//     });
+//   }
+// };
